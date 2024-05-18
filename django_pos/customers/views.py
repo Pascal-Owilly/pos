@@ -8,7 +8,7 @@ from .models import Customer, Supplier
 def CustomersListView(request):
     context = {
         "active_icon": "customers",
-        "customers": Customer.objects.all()
+        "customers": Customer.objects.all().order_by('-date_added')
     }
     return render(request, "customers/customers.html", context=context)
 
@@ -139,7 +139,7 @@ def CustomersDeleteView(request, customer_id):
 def SuppliersListView(request):
     context = {
         "active_icon": "suppliers",
-        "suppliers": Supplier.objects.all()
+        "suppliers": Supplier.objects.all().order_by('-date_added')
     }
     return render(request, "customers/suppliers.html", context=context)
 

@@ -116,5 +116,5 @@ from .models import Employee
 
 @login_required(login_url="/accounts/login/")
 def employee_list(request):
-    employees = Employee.objects.all()
+    employees = Employee.objects.all().order_by('-created_at')
     return render(request, 'accounts/employees.html', {'employees': employees})

@@ -51,9 +51,9 @@
                                 <!--End Search product-->
 
                                 <!--Delete all products from sale-->
-                                <button type="button" class="mb-4 btn btn-danger btn-sm deleteAll">
+                                <!-- <button type="button" class="mb-4 btn btn-danger btn-sm deleteAll">
                                     Delete all products <i class="ml-1 fas fa-trash-alt fa-xs"></i>
-                                </button>
+                                </button> -->
                                 <!--End Delete all products from sale-->
 
                                 <!--Products table-->
@@ -66,6 +66,7 @@
                                                 <th>Price</th>
                                                 <th>Quantity</th>
                                                 <th>Total</th>
+                                                
                                                 <th class="text-center">Delete</th>
                                                 </tr>
                                             </thead>
@@ -93,6 +94,18 @@
                                         <option value="{{customer.value}}">{{customer.label}}</option>
                                         {% endfor %}
                                     </select>
+                                </div>
+                                
+                                <div class="form-group mt-4">
+                                    <label for="store">Store</label>
+                                    <select name="store" class="form-control" id="store_select" required>
+                                        <option value="" selected disabled hidden>Select the store</option>
+                                        {% for store in stores %}
+                                        <option value="{{ store.id }}">{{ store.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
                                 <div class="form-group mt-4">
                                     <label>Subtotal</label>
                                     <div class="input-group">
@@ -453,22 +466,24 @@
             if (repo.loading) {
                 return repo.text;
             }
-        
+
             var option = $(
                 '<div class="wrapper container">'+
                 ' <div class="row">' +
                     '<div class="col-lg-11 text-left shadow-sm">' +
-                      //'<br>' +
-                      '<p style="margin-bottom: 5px;">' +
-                      '<b>Name:</b> ' + repo.text + " | Category: " + "<span class='btn-info px-2'>" + repo.category + '</span> <br>' +
-                      '<b>Price:</b> <span class="btn-success px-2">'+repo.price+' $. </span>'+
-                      '</p>' +
+                    '<p style="margin-bottom: 5px;">' +
+                    '<b>Name:</b> ' + repo.text + " | Category: " + "<span class='btn-info px-2'>" + repo.category + '</span> <br>' +
+                    '<b>Price:</b> <span class="btn-success px-2">'+repo.price+' Ksh. </span>'+
+                    // Add the capacity field here
+                    '<b>Capacity:</b> <span class="btn-primary px-2">'+repo.capacity+'</span>'+
+                    '</p>' +
                     '</div>' +
-                  '</div>' +
+                '</div>' +
                 '</div>');
-        
+
             return option;
         }
+
 
         // Send the sale via ajax
         

@@ -42,7 +42,7 @@
                         <select name="product" class="form-control" required>
                             <option value="" selected disabled hidden>Select Product</option>
                             {% for product in products %}
-                            <option value="{{ product.id }}">{{ product.name }}</option>
+                            <option value="{{ product.id }}">{{ product.name }} - {{ product.capacity }} </option>
                             {% endfor %}
                         </select>
                         <a href="{% url 'products:products_add' %}">Add New Product</a>

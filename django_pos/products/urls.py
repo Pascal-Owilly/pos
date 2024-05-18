@@ -2,6 +2,8 @@ from django.urls import path
 
 from . import views
 from sales.views import daily_reports, product_report
+from products.views import store_inventory_view, vendors_list
+
 app_name = "products"
 
 urlpatterns = [
@@ -35,6 +37,8 @@ urlpatterns = [
     # List purchases
     path('purchases/', views.purchase_list, name='purchase_list'),  
     path('stores/', views.store_list, name='store_list'),  
+    path('store/<int:store_id>/inventory/', store_inventory_view, name='store_inventory'),
+    path('vendors/', vendors_list, name='vendors_list'),  
 
     path('stores/add/', views.add_store, name='add_store'),
     path('vendors/add/', views.add_vendor, name='add_vendor'),

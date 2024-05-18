@@ -1,5 +1,6 @@
 from django.db import models
 from django.forms import model_to_dict
+import django.utils.timezone
 
 
 class Customer(models.Model):
@@ -8,6 +9,7 @@ class Customer(models.Model):
     address = models.TextField(max_length=256, blank=True, null=True)
     email = models.EmailField(max_length=256, blank=True, null=True)
     phone = models.CharField(max_length=30, blank=True, null=True)
+    date_added = models.DateTimeField(default=django.utils.timezone.now)
 
     class Meta:
         db_table = 'Customers'
@@ -30,6 +32,7 @@ class Supplier(models.Model):
     address = models.TextField(max_length=256, blank=True, null=True)
     email = models.EmailField(max_length=256, blank=True, null=True)
     phone = models.CharField(max_length=30, blank=True, null=True)
+    date_added = models.DateTimeField(default=django.utils.timezone.now)
 
     class Meta:
         db_table = 'Suppliers'

@@ -2,14 +2,14 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
-from .models import Category, Product
-
+from .models import Category, Product, StoreInventory
+from django.shortcuts import render, get_object_or_404
 
 @login_required(login_url="/accounts/login/")
 def CategoriesListView(request):
     context = {
         "active_icon": "products_categories",
-        "categories": Category.objects.all()
+        "categories": Category.objects.all().order_by('-date_added')
     }
     return render(request, "products/categories.html", context=context)
 
@@ -138,7 +138,7 @@ def CategoriesDeleteView(request, category_id):
 def ProductsListView(request):
     context = {
         "active_icon": "products",
-        "products": Product.objects.all()
+        "products": Product.objects.all().order_by('-date_added')
     }
     return render(request, "products/products.html", context=context)
 
@@ -160,7 +160,8 @@ def ProductsAddView(request):
             "status": data['state'],
             "description": data['description'],
             "category": Category.objects.get(id=data['category']),
-            "price": data['price']
+            "price": data['price'],
+            "capacity": data['capacity']
         }
 
         # Check if a product with the same attributes exists
@@ -292,8 +293,13 @@ from .forms import PurchaseForm, VendorForm, StoreForm
 
 @login_required(login_url="/accounts/login/")
 def purchase_list(request):
-    purchases = Purchase.objects.all()
+    purchases = Purchase.objects.all().order_by('-date_added')
     return render(request, 'products/purchase_list.html', {'purchases': purchases})
+
+@login_required(login_url="/accounts/login/")
+def vendors_list(request):
+    vendors = Vendor.objects.all().order_by('-date_added')
+    return render(request, 'customers/vendors_list.html', {'vendors': vendors})
 
 @login_required(login_url="/accounts/login/")
 def add_purchase(request):
@@ -318,15 +324,29 @@ def add_store(request):
 
 @login_required(login_url="/accounts/login/")
 def store_list(request):
-    stores = Store.objects.all()  # Query for Store objects
+    stores = Store.objects.all().order_by('-date_added')  # Query for Store objects
     return render(request, 'products/store_list.html', {'stores': stores}) 
+
+def store_inventory_view(request, store_id):
+    # Get the store object based on store_id
+    store = get_object_or_404(Store, pk=store_id)
+    
+    # Get inventory items for the store
+    inventory_items = StoreInventory.objects.filter(store=store)
+    
+    context = {
+        'store': store,
+        'inventory_items': inventory_items,
+    }
+    return render(request, 'products/store_inventory.html', context)
+
 
 def add_vendor(request):
     if request.method == 'POST':
         form = VendorForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('products:purchase_list')  # Adjust redirect URL as needed
+            return redirect('products:vendors_list')  # Adjust redirect URL as needed
     else:
         form = VendorForm()
     return render(request, 'products/add_vendor.html', {'form': form})

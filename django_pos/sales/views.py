@@ -54,7 +54,7 @@ def add_purchase(request):
 @login_required(login_url="/accounts/login/")
 def SalesListView(request):
     # Get all sales
-    sales = Sale.objects.all()
+    sales = Sale.objects.all().order_by('-date_added')
 
     # Calculate total amount for each sale
     for sale in sales:
@@ -67,13 +67,10 @@ def SalesListView(request):
     }
     return render(request, "sales/sales.html", context=context)
 
+from django.db import transaction
+
 @login_required(login_url="/accounts/login/")
 def SalesAddView(request):
-    context = {
-        "active_icon": "sales",
-        "customers": [c.to_select2() for c in Customer.objects.all()]
-    }
-
     if request.method == 'POST':
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             # Save the POST arguments
@@ -88,39 +85,71 @@ def SalesAddView(request):
                 "amount_payed": float(data.get("amount_payed")),
                 "amount_change": float(data.get("amount_change")),
             }
-            try:
-                # Create the sale
-                new_sale = Sale.objects.create(**sale_attributes)
-                # Create the sale details
-                products = data.get("products")
 
-                for product in products:
-                    detail_attributes = {
-                        "sale": new_sale,
-                        "product": Product.objects.get(id=int(product.get("id"))),
-                        "price": product.get("price"),
-                        "quantity": product.get("quantity"),
-                        "total_detail": product.get("total_product")
-                    }
-                    SaleDetail.objects.create(**detail_attributes)
+            # Use Django's transaction atomic block to ensure data consistency
+            with transaction.atomic():
+                try:
+                    # Create the sale
+                    new_sale = Sale.objects.create(**sale_attributes)
+                    
+                    # Create the sale details
+                    products = data.get("products")
 
-                messages.success(
-                    request, 'Sale created successfully!', extra_tags="success")
+                    for product in products:
+                        detail_attributes = {
+                            "sale": new_sale,
+                            "product": Product.objects.get(id=int(product.get("id"))),
+                            "price": product.get("price"),
+                            "quantity": product.get("quantity"),
+                            "total_detail": product.get("total_product")
+                        }
+                        SaleDetail.objects.create(**detail_attributes)
 
-            except Exception as e:
-                messages.error(
-                    request, 'There was an error during the creation!', extra_tags="danger")
+                        # Update the store's inventory
+                        store = Store.objects.get(id=int(product.get("store_id"))).order_by('-date_created')
+                        product_id = int(product.get("id"))
+                        quantity_sold = int(product.get("quantity"))
+                        update_store_inventory(store, product_id, quantity_sold)
 
-            return JsonResponse({"redirect_url": "/sales/list/"})
+                    messages.success(
+                        request, 'Sale created successfully!', extra_tags="success")
+
+                except Exception as e:
+                    messages.error(
+                        request, 'There was an error during the creation!', extra_tags="danger")
+
+                return JsonResponse({"redirect_url": "/sales/list/"})
+
+    context = {
+        "active_icon": "sales",
+        "customers": [c.to_select2() for c in Customer.objects.all()],
+        "stores": Store.objects.all()
+    }
 
     return render(request, "sales/sales_add.html", context=context)
 
+def update_store_inventory(store, product_id, quantity_sold):
+    """
+    Update the store's inventory after a sale.
+    """
+    try:
+        # Retrieve the store inventory entry for the product
+        store_inventory = StoreInventory.objects.get(store=store, product_id=product_id)
+        
+        # Deduct the sold quantity from the store's inventory
+        store_inventory.quantity -= quantity_sold
+        store_inventory.save()
+
+        print(f"Updated store inventory for product ID {product_id} in store {store.name} to {store_inventory.quantity}.")
+    except StoreInventory.DoesNotExist:
+        # Handle case where the product is not found in the store's inventory
+        print(f"Product ID {product_id} not found in store {store.name} inventory.")
 
 @login_required(login_url="/accounts/login/")
 def SalesDetailsView(request, sale_id):
     try:
         sale = Sale.objects.get(id=sale_id)
-        details = SaleDetail.objects.filter(sale=sale)
+        details = SaleDetail.objects.filter(sale=sale).order_by('-date_added')
 
         context = {
             "active_icon": "sales",

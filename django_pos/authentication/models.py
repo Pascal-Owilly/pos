@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser, Group
 from django.db import models
+import django.utils.timezone
 
 class CustomUser(AbstractUser):
     ADMIN = 'admin'
@@ -33,6 +34,7 @@ class CustomUser(AbstractUser):
 
 class Employee(models.Model):
     employee = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
+    created_at = models.DateTimeField(null=True, blank=True, auto_now_add=True)
 
     def __str__(self):
         return f'{self.employee.first_name} {self.employee.last_name}'

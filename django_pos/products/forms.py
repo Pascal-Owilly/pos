@@ -15,4 +15,5 @@ class StoreForm(forms.ModelForm):
 class VendorForm(forms.ModelForm):
     class Meta:
         model = Vendor
-        fields = ['name', 'contact_info']  # Add other fields as needed
+        fields = ['name', 'contact_info', 'address']  # Add other fields as needed
+    
